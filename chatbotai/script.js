@@ -1,5 +1,3 @@
-const NEWS_API_KEY = 'your_newsapi_key'; // Get a free key from https://newsapi.org
-
 function sendMessage() {
   const input = document.getElementById("user-input");
   const message = input.value.trim();
@@ -9,90 +7,57 @@ function sendMessage() {
   input.value = "";
 
   setTimeout(() => {
-    handleBotReply(message);
-  }, 500);
+    handleUserInput(message);
+  }, 300);
 }
 
 function appendMessage(sender, text) {
   const chatBox = document.getElementById("chat-box");
   const messageDiv = document.createElement("div");
-  messageDiv.classList.add("message", sender);
-  messageDiv.innerHTML = text;
+  messageDiv.classList.add("message", `${sender}-message`);
+  messageDiv.innerHTML = text.replace(/\n/g, "<br>");
   chatBox.appendChild(messageDiv);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-function handleBotReply(message) {
+function sendBotResponse(responseText) {
+  appendMessage("bot", responseText);
+}
+
+function handleUserInput(message) {
   const msg = message.toLowerCase();
 
   if (msg.includes("news")) {
-    fetchLatestNews();
-  } else if (msg.includes("sports") || msg.includes("score")) {
-    showSportsLinks();
-  } else if (msg.includes("website") || msg.includes("link")) {
-    showUsefulLinks();
+    sendBotResponse(`
+      📰 <strong>Latest News:</strong><br>
+      <a href="https://cnn.com" target="_blank">CNN</a><br>
+      <a href="https://bbc.com/news" target="_blank">BBC News</a><br>
+      <a href="https://news.google.com" target="_blank">Google News</a>
+    `);
+  } else if (msg.includes("sports") || msg.includes("live score")) {
+    sendBotResponse(`
+      🏟️ <strong>Sports Scores:</strong><br>
+      <a href="https://www.espn.com" target="_blank">ESPN</a><br>
+      <a href="https://www.flashscore.com" target="_blank">FlashScore</a>
+    `);
+  } else if (msg.includes("who is") || msg.includes("wikipedia")) {
+    const keyword = msg.replace("who is", "").replace("wikipedia", "").trim();
+    sendBotResponse(`📚 <a href="https://en.wikipedia.org/wiki/${keyword.replace(/ /g, "_")}" target="_blank">${keyword} - Wikipedia</a>`);
+  } else if (msg.includes("weather in")) {
+    const city = msg.replace("weather in", "").trim();
+    sendBotResponse(`
+      ☁️ <strong>Weather in ${city}:</strong><br>
+      <a href="https://weather.com/weather/today/l/${city}" target="_blank">Weather.com</a><br>
+      <a href="https://www.accuweather.com/en/search-locations?query=${city}" target="_blank">Accuweather</a>
+    `);
+  } else if (msg.includes("famous food in")) {
+    const loc = msg.replace("famous food in", "").trim();
+    sendBotResponse(`
+      🍽️ <strong>Famous food in ${loc}:</strong><br>
+      <a href="https://www.tasteatlas.com/search?search=${loc}" target="_blank">TasteAtlas</a><br>
+      <a href="https://www.youtube.com/results?search_query=${loc}+famous+food" target="_blank">YouTube Recipes</a>
+    `);
   } else {
-    const reply = generateReply(msg);
-    appendMessage("bot", reply);
+    sendBotResponse("🤖 I didn’t get that. Try asking:<br>“news”, “sports”, “weather in Paris”, “famous food in Italy”, or “who is Elon Musk”.");
   }
-}
-
-function generateReply(msg) {
-  if (msg.includes("hello") || msg.includes("hi")) {
-    return "Hello! How can I assist you?";
-  } else if (msg.includes("how are you")) {
-    return "I'm doing well, thank you!";
-  } else if (msg.includes("your name")) {
-    return "I'm your AI chatbot assistant!";
-  } else {
-    return "I'm not sure about that. Try asking for 'news', 'sports score', or 'website links'.";
-  }
-}
-
-// 📰 News API Function
-function fetchLatestNews() {
-  fetch(`https://newsapi.org/v2/top-headlines?country=us&pageSize=3&apiKey=${NEWS_API_KEY}`)
-    .then(response => response.json())
-    .then(data => {
-      if (data.articles && data.articles.length > 0) {
-        let newsReply = "<strong>📰 Latest News:</strong><ul>";
-        data.articles.forEach(article => {
-          newsReply += `<li><a href="${article.url}" target="_blank">${article.title}</a></li>`;
-        });
-        newsReply += "</ul>";
-        appendMessage("bot", newsReply);
-      } else {
-        appendMessage("bot", "Sorry, I couldn't fetch news right now.");
-      }
-    })
-    .catch(error => {
-      console.error(error);
-      appendMessage("bot", "Error fetching news.");
-    });
-}
-
-// 🏈 Sports Scores (static or links)
-function showSportsLinks() {
-  const links = `
-    <strong>🏟️ Check Live Sports Scores:</strong>
-    <ul>
-      <li><a href="https://www.espn.com" target="_blank">ESPN</a></li>
-      <li><a href="https://www.bbc.com/sport" target="_blank">BBC Sport</a></li>
-      <li><a href="https://www.flashscore.com" target="_blank">FlashScore</a></li>
-    </ul>
-  `;
-  appendMessage("bot", links);
-}
-
-// 🌐 Useful Links
-function showUsefulLinks() {
-  const links = `
-    <strong>🔗 Helpful Websites:</strong>
-    <ul>
-      <li><a href="https://www.google.com" target="_blank">Google</a></li>
-      <li><a href="https://www.wikipedia.org" target="_blank">Wikipedia</a></li>
-      <li><a href="https://www.stackoverflow.com" target="_blank">Stack Overflow</a></li>
-    </ul>
-  `;
-  appendMessage("bot", links);
 }
